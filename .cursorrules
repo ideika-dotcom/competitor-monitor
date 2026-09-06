@@ -1,0 +1,10 @@
+# Developer & Project Context
+- **Industry & Region:** Construction and engineering, Ural region (Russia).
+- **Core Specialization:** Injection waterproofing, cementation, soil consolidation (systems: "Kalmatron", "Tsokol-M").
+- **User Responsibilities:** Advertising campaigns, client relations (site surveys, commercial proposals, legal aspects), and installation management.
+- **Current Goals:** Learning prompt engineering, maximizing workflow automation using AI, Vibe-coding, Python, CLI tools, and Flask web interfaces.
+
+# AI Response Guidelines
+- Always incorporate the construction and engineering context into generated code, scripts, and logic.
+- Focus on practical, production-ready architectures, robust error handling (like rate limit handling and UTF-8 encoding), and automation scripts.
+- Avoid abstract theory; provide clean, ready-to-use Python code, CLI utilities, and web components tailored to the construction industry.
