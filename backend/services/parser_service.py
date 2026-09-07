@@ -51,6 +51,11 @@ class ParserService:
         options.add_argument('--window-size=1920,1080')
         options.add_argument(f'--user-agent={settings.parser_user_agent}')
         options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_argument('--disable-extensions')
+        options.add_argument('--disable-notifications')
+        options.add_argument('--disable-popup-blocking')
+        options.add_argument('--ignore-certificate-errors')
+        options.page_load_strategy = 'eager'  # Не ждем загрузку всех картинок и счетчиков, берем DOM сразу
         options.add_experimental_option('excludeSwitches', ['enable-automation'])
         options.add_experimental_option('useAutomationExtension', False)
         
@@ -169,9 +174,26 @@ class ParserService:
             
         except TimeoutException:
             total_elapsed = time.time() - total_start
-            logger.error(f"  ✗ TIMEOUT за {total_elapsed:.2f} сек")
-            logger.error("=" * 50)
-            return None, None, None, None, "Превышено время ожидания загрузки страницы"
+            logger.warning(f"  ⚠ Превышено время ожидания (таймаут), пытаемся извлечь доступный контент...")
+            try:
+                title = driver.title or ""
+                body_text = ""
+                try:
+                    body_elem = driver.find_element(By.TAG_NAME, 'body')
+                    body_text = body_elem.text or ""
+                except Exception:
+                    body_text = driver.execute_script("return document.body.innerText;") or ""
+                
+                if len(body_text) > 20000:
+                    body_text = body_text[:20000]
+                
+                screenshot_bytes = driver.get_screenshot_as_png()
+                logger.info(f"  ✓ Fallback успешен: извлечено {len(body_text)} символов текста")
+                return title, "", None, body_text, screenshot_bytes, None
+            except Exception as fallback_err:
+                logger.error(f"  ✗ Ошибка при попытке fallback: {fallback_err}")
+                logger.error("=" * 50)
+                return None, None, None, None, None, "Превышено время ожидания загрузки страницы"
             
         except WebDriverException as e:
             total_elapsed = time.time() - total_start
@@ -181,19 +203,19 @@ class ParserService:
             logger.error("=" * 50)
             
             if 'net::ERR_NAME_NOT_RESOLVED' in error_msg:
-                return None, None, None, None, "Не удалось найти сайт по указанному адресу"
+                return None, None, None, None, None, "Не удалось найти сайт по указанному адресу"
             elif 'net::ERR_CONNECTION_REFUSED' in error_msg:
-                return None, None, None, None, "Соединение отклонено сервером"
+                return None, None, None, None, None, "Соединение отклонено сервером"
             elif 'net::ERR_CONNECTION_TIMED_OUT' in error_msg:
-                return None, None, None, None, "Превышено время ожидания соединения"
+                return None, None, None, None, None, "Превышено время ожидания соединения"
             else:
-                return None, None, None, None, f"Ошибка браузера: {error_msg[:200]}"
+                return None, None, None, None, None, f"Ошибка браузера: {error_msg[:200]}"
                 
         except Exception as e:
             total_elapsed = time.time() - total_start
             logger.error(f"  ✗ Неизвестная ошибка за {total_elapsed:.2f} сек: {e}")
             logger.error("=" * 50)
-            return None, None, None, None, f"Ошибка при загрузке страницы: {str(e)[:200]}"
+            return None, None, None, None, None, f"Ошибка при загрузке страницы: {str(e)[:200]}"
             
         finally:
             if driver:
@@ -204,7 +226,7 @@ class ParserService:
                 except Exception as e:
                     logger.warning(f"  Ошибка при закрытии драйвера: {e}")
     
-    async def parse_url(self, url: str) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[bytes], Optional[str]]:
+    async def parse_url(self, url: str) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[str], Optional[bytes], Optional[str]]:
         """
         Асинхронный парсинг URL через Chrome
         """

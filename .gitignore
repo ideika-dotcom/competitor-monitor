@@ -15,7 +15,12 @@ env/
 # Builds / binaries
 dist/
 build/
-*.exe
+*.spec
+desktop/dist/
+desktop/build/
+desktop/*.spec
+desktop/settings.json
+
 
 # OS junk
 .DS_Store

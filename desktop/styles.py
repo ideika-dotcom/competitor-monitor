@@ -47,6 +47,24 @@ QPushButton#navButton:checked {
     border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
+/* === GroupBox === */
+QGroupBox {
+    background-color: #1a2234;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    margin-top: 12px;
+    padding-top: 16px;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 6px;
+    color: #38bdf8;
+}
+
 /* === Cards === */
 QFrame#card {
     background-color: #1a2234;
